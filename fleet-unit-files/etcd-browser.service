@@ -1,0 +1,19 @@
+[Unit]
+Description=%p
+After=docker.service etcd.service
+Requires=docker.service etcd.service
+
+
+[Service]
+TimeoutStartSec=0
+
+# build image if theres none
+ExecStartPre=/bin/sh -c "/usr/bin/docker images | grep %p || /usr/bin/docker build -t %p github.com/psi-4ward/%p.git"
+
+# run or start the container
+ExecStart=/bin/sh -c "/usr/bin/docker ps -a | grep %p && /usr/bin/docker start -a %p || /usr/bin/docker run --rm --name=%p -p 0.0.0.0:8000:8000 %p"
+
+ExecStop=/usr/bin/docker stop %p
+
+[X-Fleet]
+MachineMetadata=etcd=master

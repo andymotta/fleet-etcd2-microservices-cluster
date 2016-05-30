@@ -1,6 +1,7 @@
 ## Architecture
 Fleet's backend is etcd, so we are using a central services architecture for this production deployment:
 ![etcd](images/central-services.png)
+
 Source: <https://coreos.com/os/docs/latest/cluster-architectures.html#production-cluster-with-central-services>
 
 ## Using Terraform
