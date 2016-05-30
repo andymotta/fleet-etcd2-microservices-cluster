@@ -1,0 +1,26 @@
+#cloud-config
+
+write_files:
+  - path: /home/core/ports
+    permissions: 0644
+    owner: core
+    content: |
+      ETCDM1="http://10.0.101.100:2379"
+      ETCDM2="http://10.0.102.100:2379"
+      ETCDM3="http://10.0.103.100:2379"
+coreos:
+  etcd2:
+    proxy: on
+    listen-client-urls: "http://$private_ipv4:2379,http://127.0.0.1:2379"
+    initial-cluster: "etcd1=http://10.0.101.100:2380,etcd2=http://10.0.102.100:2380,etcd3=http://10.0.103.100:2380"
+  fleet:
+    metadata: "type=t2.medium,{{ pub_priv }},monitor=yes"
+    etcd_servers: "http://10.0.101.100:2379,http://10.0.102.100:2379,http://10.0.103.100:2379"
+  units:
+    - name: etcd2.service
+      command: start
+    - name: fleet.service
+      command: start
+  update:
+    group: stable
+    reboot-strategy: off

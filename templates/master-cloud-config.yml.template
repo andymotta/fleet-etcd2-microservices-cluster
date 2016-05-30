@@ -1,0 +1,23 @@
+#cloud-config
+
+coreos:
+  etcd2:
+    name: {{ etcd_name }}
+    advertise-client-urls: "http://$private_ipv4:2379"
+    initial-advertise-peer-urls: "http://$private_ipv4:2380"
+    listen-client-urls: "http://$private_ipv4:2379,http://127.0.0.1:2379"
+    listen-peer-urls: "http://$private_ipv4:2380"
+    initial-cluster-token: {{ cluster_uuid }}
+    initial-cluster: "etcd1=http://10.0.101.100:2380,etcd2=http://10.0.102.100:2380,etcd3=http://10.0.103.100:2380"
+    initial-cluster-state: new
+  fleet:
+    metadata: "etcd=master,monitor=yes"
+    etcd_servers: "http://$private_ipv4:2379"
+  units:
+    - name: etcd2.service
+      command: start
+    - name: fleet.service
+      command: start
+  update:
+    group: stable
+    reboot-strategy: off

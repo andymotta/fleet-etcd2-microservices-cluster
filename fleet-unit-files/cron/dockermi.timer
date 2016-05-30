@@ -1,0 +1,7 @@
+[Unit]
+Description=Timer for dockermi service
+Requires=docker.service
+[Timer]
+OnCalendar=daily
+[X-Fleet]
+MachineOf=dockermi.service

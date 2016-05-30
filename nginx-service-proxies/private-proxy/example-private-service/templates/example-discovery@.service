@@ -1,0 +1,28 @@
+[Unit]
+Description=example service on random docker port etcd registration
+
+
+Requires=example@%i.service
+
+After=example@%i.service
+BindsTo=example@%i.service
+
+[Service]
+EnvironmentFile=/etc/environment
+EnvironmentFile=/home/core/ports
+
+ExecStart=/bin/bash -c '\
+  while true; do \
+    curl -f ${COREOS_PRIVATE_IPV4}:${exampleport}/disco; \
+    if [ $? -eq 0 ]; then \
+      etcdctl --peers ${ETCDM1} --peers ${ETCDM2} --peers ${ETCDM3} set /services/internal/example/${COREOS_PRIVATE_IPV4} \'${COREOS_PRIVATE_IPV4}:${exampleport}\' --ttl 30; \
+    else \
+      etcdctl --peers ${ETCDM1} --peers ${ETCDM2} --peers ${ETCDM3} rm /services/internal/example/${COREOS_PRIVATE_IPV4}; \
+    fi; \
+    sleep 20; \
+  done'
+
+ExecStop=/usr/bin/etcdctl --peers ${ETCDM1} --peers ${ETCDM2} --peers ${ETCDM3} rm /services/internal/example/${COREOS_PRIVATE_IPV4}
+
+[X-Fleet]
+MachineOf=example@%i.service

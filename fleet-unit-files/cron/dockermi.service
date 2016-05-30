@@ -1,0 +1,7 @@
+[Unit]
+Requires=docker.service
+Description=Docker image cleanup service for limited or in-memory nodes
+[Service]
+ExecStart=/bin/bash -c "docker rmi $(docker images -q --filter 'dangling=true') || true"
+[X-Fleet]
+MachineMetadata=etcd=worker
