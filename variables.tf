@@ -30,7 +30,7 @@ variable "subnet2" { default="subnet-xxxxxxxx" }
 variable "subnet3" { default="subnet-xxxxxxxx" }
 
 
-variable "vpc" { default="vpc-be4acbda" }
+variable "vpc" { default="vpc-xxxxxxxx" }
 variable "public_subnets" { default = "subnet-xxxxxxxx,subnet-xxxxxxxx,subnet-xxxxxxxx" }
 variable "private_subnets" { default = "subnet-xxxxxxxx,subnet-xxxxxxxx,subnet-xxxxxxxx" }
 

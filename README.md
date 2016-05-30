@@ -32,7 +32,7 @@ Check variables.tf for what you need to change
 Proper configuration of etcd is extremely important (hence the static masters):
 * Here you will find the fault-tolerance table for retaining registry quorum:  https://coreos.com/etcd/docs/latest/admin_guide.html#fault-tolerance-table
 * Check out the turning parameters, especially if running cross-region masters: https://coreos.com/etcd/docs/latest/tuning.html
-* Getting the configuration flags right is a must when bootstrapping etcd: https://github.com/coreos/etcd/blob/master/Documentation/configuration.md
+* Getting the configuration flags right is a must when bootstrapping etcd: https://github.com/coreos/etcd/tree/master/Documentation
 * If you're like to use the API instead of the CLI (dev-folk), check this out: https://coreos.com/etcd/docs/latest/api.html
 * **Optional**: use client certificates to secure communication: https://coreos.com/os/docs/latest/customize-etcd-unit.html (Right now we're running etcd on private net only, single VPC only)
 
