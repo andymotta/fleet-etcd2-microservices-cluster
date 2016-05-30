@@ -1,12 +1,7 @@
 ## Architecture
-Fleet is  based on etcd, so we are using a central services architecture for this production deployment:
+Fleet's backend is etcd, so we are using a central services architecture for this production deployment:
 ![etcd](images/central-services.png)
 Source: <https://coreos.com/os/docs/latest/cluster-architectures.html#production-cluster-with-central-services>
-
-## Terraform Bird's-eye View
-(**Note**: Missing Internal ELB and ASG)
-![terraform](images/terraform.jpg)
-
 
 ## Using Terraform
 
@@ -14,12 +9,13 @@ Download: https://terraform.io/downloads.html
 Extract the binaries to some bin directory within your path
 
 * Copy terraform.tfvars.editme to terraform.tfvars and add AWS creds
-* Check variables.tf for what you need to change
-** If using different master IPs: prepare_templates.sh** will bulk change static IPs (cloud-config workaround)
 
-###Create VPC
-Or use your own.
-See <https://github.com/andymotta/vpc-in-a-box> to create vpc
+**Create VPC** or use your own.
+* See <https://github.com/andymotta/vpc-in-a-box> to create vpc
+
+Check variables.tf for what you need to change
+* If using different master IPs: prepare_templates.sh** will bulk change static IPs (cloud-config workaround)
+
 
 ### Deploy the stack
 `make | tee deploy_output`
@@ -32,7 +28,7 @@ See <https://github.com/andymotta/vpc-in-a-box> to create vpc
 `terraform destroy`
 
 ### Some notes on etcd:
-Proper configuration of etcd is extremely important, which is the reason for the static masters.
+Proper configuration of etcd is extremely important (hence the static masters):
 * Here you will find the fault-tolerance table for retaining registry quorum:  https://coreos.com/etcd/docs/latest/admin_guide.html#fault-tolerance-table
 * Check out the turning parameters, especially if running cross-region masters: https://coreos.com/etcd/docs/latest/tuning.html
 * Getting the configuration flags right is a must when bootstrapping etcd: https://github.com/coreos/etcd/blob/master/Documentation/configuration.md
@@ -41,7 +37,7 @@ Proper configuration of etcd is extremely important, which is the reason for the
 
 **TODO:**
 * Use Route53 internal hosted zone for microservice endpoint resolution
-* Add VPC creation
+* Add VPC creation as module
 * Need separate SG for private subnet backends (inherits SG from public tf, opens etcd ports)
 
 **Final note**...

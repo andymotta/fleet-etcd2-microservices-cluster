@@ -14,5 +14,5 @@ ExecStart=/usr/bin/docker run --rm --name %p -p 0.0.0.0:80:80 -e M1=${ETCDM1} -e
 ExecStop=/usr/bin/docker stop %p
 
 [X-Fleet]
-MachineMetadata=etcd=worker
+MachineMetadata=etcd=%i
 Global=true
