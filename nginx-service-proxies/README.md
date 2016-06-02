@@ -1,9 +1,10 @@
-![nginx](../images/nginx.jpg)
-
 ### Service Discovery
 
-See: [public-proxy/example-public-service](public-proxy/example-public-service) for a service example.
+**Note: This README is a work in progress**
 
+Nginx reverse-proxy will run on every worked node to round-robin services registered in etcd.
+
+See: [public-proxy/example-public-service](public-proxy/example-public-service) for a service example.
 
 Dependent service health checks built into the APIs at /disco
 * Returns bad HTTP code if API can't talk to connected services.  Discovery sidekick then removes the key, removing the service from the Nginx round-robin.

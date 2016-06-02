@@ -1,3 +1,11 @@
-output "fleet_env" {
-  value = "export FLEETCTL_TUNNEL=${aws_elb.aws_elb.FleetCluster-worker-elb.dns_name}:2222\nexport FLEETCTL_STRICT_HOST_KEY_CHECKING=false"
+output "fleet_ui" {
+  value = "http://${aws_elb.FleetUI-elb.dns_name}"
+}
+
+output "etcd_browser" {
+  value = "http://${aws_elb.etcd-browser-elb.dns_name}"
+}
+
+output "sshuttle" {
+  value = "sshuttle -r ubuntu@${aws_instance.sshuttle.public_ip} 0/0 -D"
 }

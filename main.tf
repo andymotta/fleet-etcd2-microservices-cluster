@@ -6,100 +6,76 @@ provider "aws" {
 
 resource "aws_instance" "etcd_master_1" {
     ami = "${lookup(var.coreos_amis, var.region)}"
-    availability_zone  = "${var.az1}"
     instance_type = "${var.master_instance_size}"
-    subnet_id = "${var.subnet1}"
-    private_ip = "${var.MasterIPaz1}"
-    user_data       = "${file("ui-master1-cloud-config.yml")}"
-    security_groups = ["${aws_security_group.FleetCluster_public_securitygroup.id}"]
+    private_ip = "${var.MasterIPazA}"
+    subnet_id = "${element(split(",", var.private_subnets), 0)}"
+    availability_zone = "${element(split(",", var.azs), 0)}"
+    user_data       = "${file("master1-cloud-config.yml")}"
+    security_groups = ["${aws_security_group.public_worker_securitygroup.id}"]
     key_name        = "${var.key_name}"
     root_block_device {
       volume_type = "gp2"
       volume_size = 50
-    }
-    provisioner "file" {
-        source = "${var.dockercfg}"
-        destination = "/home/core/.dockercfg"
-        connection {
-            user = "core"
-            key_file = "${var.key_file}"
-        }
-    }
-    #Fleetui journal does not work without key access
-    provisioner "file" {
-        source = "${var.key_file}"
-        destination = "/home/core/.ssh/id_rsa"
-        connection {
-            user = "core"
-            key_file = "${var.key_file}"
-        }
-    }
-    tags {
-      Name = "${var.name} etcd2 FleetUI Master"
-    }
-}
-
-resource "aws_instance" "etcd_master_2" {
-    ami = "${lookup(var.coreos_amis, var.region)}"
-    availability_zone  = "${var.az2}"
-    instance_type = "${var.master_instance_size}"
-    subnet_id = "${var.subnet2}"
-    private_ip = "${var.MasterIPaz2}"
-    user_data       = "${file("master2-cloud-config.yml")}"
-    security_groups = ["${aws_security_group.FleetCluster_public_securitygroup.id}"]
-    key_name        = "${var.key_name}"
-    root_block_device {
-      volume_type = "gp2"
-      volume_size = 50
-    }
-    provisioner "file" {
-        source = "${var.dockercfg}"
-        destination = "/home/core/.dockercfg"
-        connection {
-            user = "core"
-            key_file = "${var.key_file}"
-        }
     }
     tags {
       Name = "${var.name} etcd2 Master"
     }
+    // lifecycle {
+    //     prevent_destroy = "true"
+    // }
+}
+
+resource "aws_instance" "etcd_master_2" {
+    ami = "${lookup(var.coreos_amis, var.region)}"
+    instance_type = "${var.master_instance_size}"
+    private_ip = "${var.MasterIPazB}"
+    subnet_id = "${element(split(",", var.private_subnets), 1)}"
+    availability_zone = "${element(split(",", var.azs), 1)}"
+    user_data       = "${file("master2-cloud-config.yml")}"
+    security_groups = ["${aws_security_group.public_worker_securitygroup.id}"]
+    key_name = "${var.key_name}"
+    root_block_device {
+      volume_type = "gp2"
+      volume_size = 50
+    }
+    tags {
+      Name = "${var.name} etcd2 Master"
+    }
+    // lifecycle {
+    //     prevent_destroy = "true"
+    // }
 }
 
 resource "aws_instance" "etcd_master_3" {
     ami = "${lookup(var.coreos_amis, var.region)}"
-    availability_zone  = "${var.az3}"
     instance_type = "${var.master_instance_size}"
-    subnet_id = "${var.subnet3}"
-    private_ip = "${var.MasterIPaz3}"
+    private_ip = "${var.MasterIPazC}"
+    subnet_id = "${element(split(",", var.private_subnets), 2)}"
+    availability_zone = "${element(split(",", var.azs), 2)}"
     user_data       = "${file("master3-cloud-config.yml")}"
-    security_groups = ["${aws_security_group.FleetCluster_public_securitygroup.id}"]
+    security_groups = ["${aws_security_group.public_worker_securitygroup.id}"]
     key_name        = "${var.key_name}"
     root_block_device {
       volume_type = "gp2"
       volume_size = 50
     }
-    provisioner "file" {
-        source = "${var.dockercfg}"
-        destination = "/home/core/.dockercfg"
-        connection {
-            user = "core"
-            key_file = "${var.key_file}"
-        }
-    }
     tags {
        Name = "${var.name} etcd2 Master"
     }
+    // lifecycle {
+    //     prevent_destroy = "true"
+    // }
 }
 
-resource "aws_autoscaling_group" "FleetCluster_worker_autoscale" {
-  load_balancers       = ["${aws_elb.FleetCluster-worker-elb.id}"]
-  vpc_zone_identifier  = ["${element(split(",", var.public_subnets), count.index)}"]
-  availability_zones   = ["${element(split(",", var.azs), count.index)}"]
-  name                 = "FleetCluster_worker_autoscale"
+resource "aws_autoscaling_group" "public_worker_autoscale" {
+  load_balancers       = ["${aws_elb.public-worker-elb.id}"]
+  vpc_zone_identifier  = ["${split(",", var.public_subnets)}"]
+  availability_zones   = ["${split(",", var.azs)}"]
+  name                 = "public_worker_autoscale"
   min_size             = 0
   max_size             = 95
   desired_capacity     = "${var.num_workers}"
-  launch_configuration = "${aws_launch_configuration.FleetCluster_worker_launchconfig.name}"
+  launch_configuration = "${aws_launch_configuration.public_worker_launchconfig.name}"
   tag {
     key = "Name"
     value = "${var.name}-t2-medium"
@@ -107,28 +83,28 @@ resource "aws_autoscaling_group" "FleetCluster_worker_autoscale" {
   }
 }
 
-resource "aws_launch_configuration" "FleetCluster_worker_launchconfig" {
-  name            = "FleetCluster_worker_config"
+resource "aws_launch_configuration" "public_worker_launchconfig" {
+  name            = "worker_config"
   image_id        = "${lookup(var.coreos_amis, var.region)}"
   instance_type   = "${var.worker_instance_size}"
-  security_groups = ["${aws_security_group.FleetCluster_public_securitygroup.id}"]
+  security_groups = ["${aws_security_group.public_worker_securitygroup.id}"]
   key_name        = "${var.key_name}"
-  user_data       = "${file("worker-cloud-config.yml")}"
+  user_data       = "${file("public-worker-cloud-config.yml")}"
   root_block_device {
     volume_type = "gp2"
     volume_size = 30
   }
 }
 
-resource "aws_autoscaling_group" "FleetCluster_priv_worker_autoscale" {
-  load_balancers       = ["${aws_elb.FleetCluster-internal-elb.id}"]
-  vpc_zone_identifier  = ["${element(split(",", var.private_subnets), count.index)}"]
-  availability_zones   = ["${element(split(",", var.azs), count.index)}"]
-  name                 = "FleetCluster_priv_worker_autoscale"
+resource "aws_autoscaling_group" "internal_worker_autoscale" {
+  load_balancers       = ["${aws_elb.internal-worker-elb.id}","${aws_elb.FleetUI-elb.id}"]
+  vpc_zone_identifier  = ["${split(",", var.private_subnets)}"]
+  availability_zones   = ["${split(",", var.azs)}"]
+  name                 = "internal_worker_autoscale"
   min_size             = 0
   max_size             = 25
   desired_capacity     = "${var.num_priv_workers}"
-  launch_configuration = "${aws_launch_configuration.FleetCluster_priv_worker_launchconfig.name}"
+  launch_configuration = "${aws_launch_configuration.internal_worker_launchconfig.name}"
   tag {
     key = "Name"
     value = "${var.name}-Private-t2-medium"
@@ -136,22 +112,22 @@ resource "aws_autoscaling_group" "FleetCluster_priv_worker_autoscale" {
   }
 }
 
-resource "aws_launch_configuration" "FleetCluster_priv_worker_launchconfig" {
-  name            = "FleetCluster_priv_worker_config"
+resource "aws_launch_configuration" "internal_worker_launchconfig" {
+  name            = "internal_worker_config"
   image_id        = "${lookup(var.coreos_amis, var.region)}"
   instance_type   = "${var.worker_instance_size}"
-  security_groups = ["${aws_security_group.FleetCluster_public_securitygroup.id}"]
+  security_groups = ["${aws_security_group.public_worker_securitygroup.id}"]
   key_name        = "${var.key_name}"
-  user_data       = "${file("priv-worker-cloud-config.yml")}"
+  user_data       = "${file("internal-worker-cloud-config.yml")}"
   root_block_device {
     volume_type = "gp2"
     volume_size = 30
   }
 }
 
-resource "aws_security_group" "FleetCluster_public_securitygroup" {
-  name          = "FleetCluster_public_securitygroup"
-  description   = "Public Security Group for FleetCluster Instances"
+resource "aws_security_group" "public_worker_securitygroup" {
+  name          = "public_worker_securitygroup"
+  description   = "Security Group for Public Fleet Instances"
   vpc_id        = "${var.vpc}"
 
   egress {
@@ -186,7 +162,7 @@ resource "aws_security_group" "FleetCluster_public_securitygroup" {
     protocol = "-1"
     from_port = 0
     to_port = 0
-    security_groups = ["${aws_security_group.elb_securitygroup.id}"]
+    security_groups = ["${aws_security_group.public_worker_elb_securitygroup.id}"]
   }
 
   ingress {
@@ -211,25 +187,22 @@ resource "aws_security_group" "FleetCluster_public_securitygroup" {
   }
 }
 
-resource "aws_security_group" "elb_securitygroup" {
-  name          = "FleetCluster_elb_securitygroup"
-  description   = "Public Security Group for FleetCluster ELB"
+resource "aws_security_group" "public_worker_elb_securitygroup" {
+  name          = "public_worker_elb_securitygroup"
+  description   = "Public Security Group for Fleet Worker ELB"
   vpc_id        = "${var.vpc}"
-
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
   ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
   ingress {
     from_port   = 443
     to_port     = 443
@@ -238,18 +211,16 @@ resource "aws_security_group" "elb_securitygroup" {
   }
 }
 
-resource "aws_security_group" "internal_elb_securitygroup" {
-  name          = "FleetCluster_internal_elb_securitygroup"
-  description   = "Private Security Group for FleetCluster Internal ELB"
+resource "aws_security_group" "internal_worker_elb_securitygroup" {
+  name          = "internal_worker_elb_securitygroup"
+  description   = "Security Group for Fleet Internal ELB"
   vpc_id        = "${var.vpc}"
-
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
   ingress {
     from_port   = 0
     to_port     = 0
@@ -264,19 +235,17 @@ resource "aws_security_group" "internal_elb_securitygroup" {
   }
 }
 
-resource "aws_elb" "FleetCluster-worker-elb" {
-  name                 = "FleetCluster-worker-elb"
-  security_groups      = ["${aws_security_group.elb_securitygroup.id}"]
+resource "aws_elb" "public-worker-elb" {
+  name                 = "public-worker-elb"
+  security_groups      = ["${aws_security_group.public_worker_elb_securitygroup.id}"]
   internal             = false
-  subnets              = ["${element(split(",", var.public_subnets), count.index)}"]
-
+  subnets              = ["${split(",", var.public_subnets)}"]
   listener {
     lb_port            = 80
     instance_port      = 80
     lb_protocol        = "tcp"
     instance_protocol  = "tcp"
   }
-
   health_check {
     target              = "TCP:80"
     healthy_threshold   = 2
@@ -286,19 +255,23 @@ resource "aws_elb" "FleetCluster-worker-elb" {
   }
 }
 
-resource "aws_elb" "FleetCluster-internal-elb" {
-  name                 = "FleetCluster-internal-elb"
-  security_groups      = ["${aws_security_group.internal_elb_securitygroup.id}"]
+resource "aws_elb" "internal-worker-elb" {
+  name                 = "internal-worker-elb"
+  security_groups      = ["${aws_security_group.internal_worker_elb_securitygroup.id}"]
   internal             = true
-  subnets              = ["${element(split(",", var.private_subnets), count.index)}"]
-
+  subnets              = ["${split(",", var.private_subnets)}"]
   listener {
     lb_port            = 80
     instance_port      = 80
     lb_protocol        = "tcp"
     instance_protocol  = "tcp"
   }
-
+  listener {
+    lb_port            = 2222
+    instance_port      = 22
+    lb_protocol        = "tcp"
+    instance_protocol  = "tcp"
+  }
   health_check {
     target              = "TCP:80"
     healthy_threshold   = 2
@@ -306,4 +279,111 @@ resource "aws_elb" "FleetCluster-internal-elb" {
     timeout             = 25
     interval            = 30
   }
+}
+
+resource "aws_elb" "FleetUI-elb" {
+  name                 = "FleetUI-elb"
+  security_groups      = ["${aws_security_group.internal_worker_elb_securitygroup.id}"]
+  internal             = true
+  subnets              = ["${split(",", var.private_subnets)}"]
+  listener {
+    lb_port            = 80
+    instance_port      = 3000
+    lb_protocol        = "tcp"
+    instance_protocol  = "tcp"
+  }
+  instances = ["${aws_instance.etcd_master_1.id}","${aws_instance.etcd_master_3.id}","${aws_instance.etcd_master_3.id}"]
+  health_check {
+    target              = "TCP:3000"
+    healthy_threshold   = 2
+    unhealthy_threshold = 10
+    timeout             = 25
+    interval            = 30
+  }
+}
+
+resource "aws_elb" "etcd-browser-elb" {
+  name                 = "etcd-browser-elb"
+  security_groups      = ["${aws_security_group.internal_worker_elb_securitygroup.id}"]
+  internal             = true
+  subnets              = ["${split(",", var.private_subnets)}"]
+  listener {
+    lb_port            = 80
+    instance_port      = 8000
+    lb_protocol        = "tcp"
+    instance_protocol  = "tcp"
+  }
+  instances = ["${aws_instance.etcd_master_1.id}","${aws_instance.etcd_master_3.id}","${aws_instance.etcd_master_3.id}"]
+  health_check {
+    target              = "TCP:8000"
+    healthy_threshold   = 2
+    unhealthy_threshold = 10
+    timeout             = 25
+    interval            = 30
+  }
+}
+
+resource "aws_instance" "deploy" {
+    depends_on = ["aws_autoscaling_group.internal_worker_autoscale"]
+    ami = "${lookup(var.coreos_amis, var.region)}"
+    instance_type = "${var.master_instance_size}"
+    subnet_id = "${element(split(",", var.public_subnets), 2)}"
+    availability_zone = "${element(split(",", var.azs), 2)}"
+    user_data       = "${file("public-worker-cloud-config.yml")}"
+    security_groups = ["${aws_security_group.public_worker_securitygroup.id}"]
+    key_name        = "${var.key_name}"
+    instance_initiated_shutdown_behavior = "terminate"
+    root_block_device {
+      volume_type = "gp2"
+      volume_size = 50
+    }
+    tags {
+      Name = "${var.name} deploy"
+    }
+    #Fleetui journal does not work without private key access
+    provisioner "file" {
+        source = "${var.key_file}"
+        destination = "${var.key_file}"
+        connection {
+            user = "core"
+            key_file = "${var.key_file}"
+        }
+    }
+    provisioner "remote-exec" {
+        inline = [
+          "git clone https://github.com/andymotta/fleet-unit-files.git",
+          "chmod 0600 ${var.key_file}",
+          "touch ~/.ssh/config && echo -e 'StrictHostKeyChecking=no\nUserKnownHostsFile=/dev/null' >> ~/.ssh/config",
+          "scp -i ${var.key_file} ${var.key_file} core@${aws_instance.etcd_master_1.private_ip}:/home/core/.ssh/id_rsa",
+          "scp -i ${var.key_file} ${var.key_file} core@${aws_instance.etcd_master_2.private_ip}:/home/core/.ssh/id_rsa",
+          "scp -i ${var.key_file} ${var.key_file} core@${aws_instance.etcd_master_3.private_ip}:/home/core/.ssh/id_rsa",
+          "sleep 30",
+          "cd ~/fleet-unit-files/",
+          "fleetctl start swapon.service",
+          "fleetctl start fleetui@{1..2}.service",
+          "fleetctl start etcd-browser.service",
+          "sudo poweroff"
+        ]
+        connection {
+          user = "core"
+          key_file = "${var.key_file}"
+        }
+  }
+}
+
+resource "aws_instance" "sshuttle" {
+    depends_on = ["aws_autoscaling_group.internal_worker_autoscale"]
+    ami = "${lookup(var.sshuttle_amis, var.region)}"
+    instance_type = "${var.sshuttle_instance_size}"
+    subnet_id = "${element(split(",", var.public_subnets), 1)}"
+    availability_zone = "${element(split(",", var.azs), 1)}"
+    security_groups = ["${aws_security_group.public_worker_securitygroup.id}"]
+    key_name        = "${var.key_name}"
+    root_block_device {
+      volume_type = "gp2"
+      volume_size = 30
+    }
+    tags {
+      Name = "${var.name} sshuttle (VPN)"
+    }
 }

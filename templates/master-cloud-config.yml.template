@@ -8,7 +8,7 @@ coreos:
     listen-client-urls: "http://$private_ipv4:2379,http://127.0.0.1:2379"
     listen-peer-urls: "http://$private_ipv4:2380"
     initial-cluster-token: {{ cluster_uuid }}
-    initial-cluster: "etcd1=http://10.0.101.100:2380,etcd2=http://10.0.102.100:2380,etcd3=http://10.0.103.100:2380"
+    initial-cluster: "etcd1=http://10.0.1.100:2380,etcd2=http://10.0.2.100:2380,etcd3=http://10.0.3.100:2380"
     initial-cluster-state: new
   fleet:
     metadata: "etcd=master,monitor=yes"
@@ -18,6 +18,17 @@ coreos:
       command: start
     - name: fleet.service
       command: start
+    - name: systemd-journal-gatewayd.socket
+      command: start
+      enable: yes
+      content: |
+        [Unit]
+        Description=Journal Gateway Service Socket
+        [Socket]
+        ListenStream=/var/run/journald.sock
+        Service=systemd-journal-gatewayd.service
+        [Install]
+        WantedBy=sockets.target
   update:
     group: stable
     reboot-strategy: off

@@ -1,6 +1,6 @@
 ## copy this to terraform.tfvars and edit
 
-# aws creds
 access_key = ""
 secret_key = ""
-key_name   = "cloud-key"
+key_name   = "your-cloud-key"
+key_file   = "~/.ssh/your-cloud-key.pem"

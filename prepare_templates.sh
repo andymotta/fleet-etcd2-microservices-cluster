@@ -1,9 +1,9 @@
 #!/bin/bash
-perl -pi -e 's/10.0.101.100/<MasterIPaz1>/g' `grep -ril 10.0.101.100 *`
-perl -pi -e 's/10.0.102.100/<MasterIPaz2>/g' `grep -ril 10.0.102.100 *`
-perl -pi -e 's/10.0.103.100/<MasterIPaz3>/g' `grep -ril 10.0.103.100 *`
+perl -pi -e 's/10.0.1.100/<MasterIPazA>/g' `grep -ril 10.0.1.100 *`
+perl -pi -e 's/10.0.2.100/<MasterIPazB>/g' `grep -ril 10.0.2.100 *`
+perl -pi -e 's/10.0.3.100/<MasterIPazC>/g' `grep -ril 10.0.3.100 *`
 
-# perl -pi -e 's/FleetCluster/<YourClusterName>/g' `grep -ril FleetCluster *`
+# perl -pi -e 's/FleetC/<YourClusterName>/g' `grep -ril Fleet *`
 # oregon=$(curl -s http://stable.release.core-os.net/amd64-usr/current/coreos_production_ami_hvm_us-west-2.txt)
 # virginia=$(curl -s http://stable.release.core-os.net/amd64-usr/current/coreos_production_ami_hvm_us-east-1.txt)
 # sed -i s/OREGON/${oregon}/g variables.tf
