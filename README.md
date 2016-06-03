@@ -1,4 +1,4 @@
-# Fleet Microsevices Cluster
+# Fleet Microservices Cluster
 This project started as a way to run containers in AWS without vendor lock-in, but has since been adapted to run in AWS VPC for production.
 
 ## Architecture
@@ -8,7 +8,7 @@ Fleet's backend is etcd, so we are using a central services architecture for thi
 Source: <https://coreos.com/os/docs/latest/cluster-architectures.html#production-cluster-with-central-services>
 
 ### What does the template create?
-* 3 static etcd masters in a private subnet (central services)
+* 3 static etcd masters in private subnets (central services)
 * 1 internal worker pool/autoscaling group in a private subnet (workers)
 * 1 public worker pool/autoscaling group in a pubilc subnet (workers)
 * An internal ELB to access [FleetUI](https://github.com/purpleworks/fleet-ui)
@@ -49,14 +49,14 @@ Outputs:
 
   etcd_browser = http://internal-etcd-browser-elb-299426784.us-west-2.elb.amazonaws.com
   fleet_ui     = http://internal-FleetUI-elb-1011670857.us-west-2.elb.amazonaws.com
-  sshuttle     = sshuttle -r ubuntu@54.201.214.114 0/0 -D
-
+  sshuttle     = sshuttle -r ubuntu@54.201.214.114 0/0 -D
 ```
 If you already have VPN gateway setup with your office and you can access your VPC locally, ignore/poweroff the sshuttle instance.
 
 Otherwise, [install sshuttle](http://sshuttle.readthedocs.io/en/stable/installation.html) locally (if the Makefle didn't install it already).
 
 Now you can run the sshuttle output: `sshuttle -r ubuntu@<IPFromYourOutput> 0/0 -D`
+  * Make sure your AWS SSH key is added to your ssh-agent first `ssh-add ~/.ssh/your-cloud-key.pem`
 
 If all goes well you are now able to access
 `http://internal-etcd-browser-elb-<whatever>.us-west-2.elb.amazonaws.com` and
