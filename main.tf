@@ -292,7 +292,7 @@ resource "aws_elb" "FleetUI-elb" {
     lb_protocol        = "tcp"
     instance_protocol  = "tcp"
   }
-  instances = ["${aws_instance.etcd_master_1.id}","${aws_instance.etcd_master_3.id}","${aws_instance.etcd_master_3.id}"]
+  instances = ["${aws_instance.etcd_master_1.id}","${aws_instance.etcd_master_2.id}","${aws_instance.etcd_master_3.id}"]
   health_check {
     target              = "TCP:3000"
     healthy_threshold   = 2
@@ -313,7 +313,7 @@ resource "aws_elb" "etcd-browser-elb" {
     lb_protocol        = "tcp"
     instance_protocol  = "tcp"
   }
-  instances = ["${aws_instance.etcd_master_1.id}","${aws_instance.etcd_master_3.id}","${aws_instance.etcd_master_3.id}"]
+  instances = ["${aws_instance.etcd_master_1.id}","${aws_instance.etcd_master_2.id}","${aws_instance.etcd_master_3.id}"]
   health_check {
     target              = "TCP:8000"
     healthy_threshold   = 2

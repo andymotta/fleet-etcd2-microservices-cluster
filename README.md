@@ -1,5 +1,9 @@
 # Fleet Microservices Cluster
-This project started as a way to run containers in AWS without vendor lock-in, but has since been adapted to run in AWS VPC for production.
+
+## ** Disclaimer:
+This project is no longer being maintained in favor of less DIY Microservices cluster architectures (Like Kubernetes or ECS) but has been left as a PaaS reference ... or like one of those old photos of your younger self in the 80s-- Pretty awkward but made sense at the time.
+
+Moving on, this project started as a way to run containers in AWS Pre-ECS.
 
 ## Architecture
 Fleet's backend is etcd, so we are using a central services architecture for this production deployment:

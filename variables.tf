@@ -9,16 +9,16 @@ variable "name" { default = "Fleet Demo" }
 variable "yourPubIP" { default = "x.x.x.x/32" }
 
 #see https://github.com/andymotta/vpc-in-a-box to create vpc
-variable "vpc-cidr" { default = "10.0.0.0/16" }
+variable "vpc-cidr" { default = "10.10.0.0/16" }
 
 # aws network stuff
 variable "region" { default = "us-west-2" }
 
 variable "azs" { default = "us-west-2a,us-west-2b,us-west-2c" }
 
-variable "MasterIPazA" { default = "10.0.1.100" }
-variable "MasterIPazB" { default = "10.0.2.100" }
-variable "MasterIPazC" { default = "10.0.3.100" }
+variable "MasterIPazA" { default = "10.10.3.100" }
+variable "MasterIPazB" { default = "10.10.4.100" }
+variable "MasterIPazC" { default = "10.10.5.100" }
 
 variable "vpc" { default="vpc-xxxxxxxx" }
 variable "public_subnets" { default = "subnet-xxxxxxxx,subnet-xxxxxxxx,subnet-xxxxxxxx" }
